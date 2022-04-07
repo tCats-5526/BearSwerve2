@@ -1,6 +1,7 @@
 package frc.swervelib.ctre;
 
 import com.ctre.phoenix.sensors.BasePigeonSimCollection;
+import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import com.ctre.phoenix.sensors.WPI_PigeonIMU;
 import com.ctre.phoenix.sensors.PigeonIMU.PigeonState;
 
@@ -16,22 +17,46 @@ public class PigeonFactoryBuilder {
         return new GyroscopeImplementation(pigeon);
     }
 
+    public Gyroscope build(WPI_Pigeon2 pigeon){
+        return new GyroscopeImplementation(pigeon);
+    }
+
     private static class GyroscopeImplementation implements Gyroscope {
         private final WPI_PigeonIMU pigeon;
+        private final WPI_Pigeon2 pigeon2;
 
         private GyroscopeImplementation(WPI_PigeonIMU pigeon) {
             this.pigeon = pigeon;
+            this.pigeon2 = null;
             pigeonSim = pigeon.getSimCollection();
         }
+        private GyroscopeImplementation(WPI_Pigeon2 pigeon){
+            this.pigeon = null;
+            this.pigeon2 = pigeon;
+            pigeonSim = pigeon.getSimCollection();
+        } 
 
         @Override
         public Rotation2d getGyroHeading() {
-            return Rotation2d.fromDegrees(pigeon.getFusedHeading() + gyroOffset);
+            if(pigeon == null){
+
+                return Rotation2d.fromDegrees(pigeon2.getYaw() + gyroOffset);
+
+            }else{
+                return Rotation2d.fromDegrees(pigeon.getFusedHeading() + gyroOffset);
+            }
+            
         }
 
         @Override
         public Boolean getGyroReady() {
-            return pigeon.getState().equals(PigeonState.Ready);
+
+            if(pigeon == null){
+                return true;
+            }else{
+                return pigeon.getState().equals(PigeonState.Ready);
+            }
+            
         }
 
         @Override
